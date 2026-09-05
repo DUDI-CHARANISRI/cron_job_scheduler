@@ -13,13 +13,24 @@ public class JobAuditLog {
     private String jobName;
     private String status;
     private LocalDateTime executedAt;
+    private Integer attempts;
+    private Long durationMs;
+    private String errorMessage;
 
     public JobAuditLog() {}
 
     public JobAuditLog(String jobName, String status, LocalDateTime executedAt) {
+        this(jobName, status, executedAt, 1, 0L, null);
+    }
+
+    public JobAuditLog(String jobName, String status, LocalDateTime executedAt,
+                       int attempts, long durationMs, String errorMessage) {
         this.jobName = jobName;
         this.status = status;
         this.executedAt = executedAt;
+        this.attempts = attempts;
+        this.durationMs = durationMs;
+        this.errorMessage = errorMessage;
     }
 
     // Getters and Setters
@@ -30,4 +41,7 @@ public class JobAuditLog {
     public void setStatus(String status) { this.status = status; }
     public LocalDateTime getExecutedAt() { return executedAt; }
     public void setExecutedAt(LocalDateTime executedAt) { this.executedAt = executedAt; }
+    public Integer getAttempts() { return attempts; }
+    public Long getDurationMs() { return durationMs; }
+    public String getErrorMessage() { return errorMessage; }
 }

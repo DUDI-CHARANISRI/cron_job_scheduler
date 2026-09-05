@@ -1,0 +1,30 @@
+type Query {
+    jobs: [Job!]!
+    executions(jobId: ID!): [JobExecution!]!
+}
+
+type Mutation {
+    createJob(name: String!, cronExpression: String!, targetUrl: String, maxRetries: Int): Job!
+    runJob(jobId: ID!): JobExecution!
+}
+
+type Job {
+    id: ID!
+    name: String!
+    cronExpression: String!
+    targetUrl: String
+    enabled: Boolean!
+    maxRetries: Int!
+    createdAt: String!
+    updatedAt: String!
+}
+
+type JobExecution {
+    id: ID!
+    jobName: String!
+    status: String!
+    executedAt: String!
+    attempts: Int!
+    durationMs: Int!
+    errorMessage: String
+}
