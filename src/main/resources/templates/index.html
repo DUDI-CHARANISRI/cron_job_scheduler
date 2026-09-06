@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Operational dashboard for the Cron Job Orchestrator" />
+    <title>Orbit Scheduler | Operations</title>
+    <link rel="stylesheet" href="/css/app.css" />
+</head>
+<body>
+<main class="shell">
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="Orbit Scheduler home">
+            <span class="brand-mark">O</span>
+            <span><strong>ORBIT</strong><small>JOB ORCHESTRATOR</small></span>
+        </a>
+        <div class="topbar-actions">
+            <span id="connectionState" class="connection-state">Offline</span>
+            <button id="logoutButton" class="button button-quiet" type="button" hidden>Sign out</button>
+        </div>
+    </header>
+
+    <section id="loginView" class="login-view">
+        <div class="login-copy">
+            <p class="eyebrow">Control plane / local environment</p>
+            <h1>Make every scheduled action visible.</h1>
+            <p class="lede">Create jobs, inspect execution history, and operate the scheduler through the same secured API used by the integrations.</p>
+            <div class="signal-list">
+                <span><i></i> REST and GraphQL ready</span>
+                <span><i></i> H2 locally, PostgreSQL by profile</span>
+                <span><i></i> Kafka events when enabled</span>
+            </div>
+        </div>
+        <form id="loginForm" class="panel login-panel">
+            <div class="panel-heading">
+                <div><p class="eyebrow">Secure access</p><h2>Sign in to operate</h2></div>
+                <span class="status-dot"></span>
+            </div>
+            <label>Username<input id="username" name="username" autocomplete="username" required /></label>
+            <label>Password<input id="password" name="password" type="password" autocomplete="current-password" required /></label>
+            <button id="loginButton" class="button button-primary" type="submit">Open control room <span aria-hidden="true">&#8594;</span></button>
+            <p class="form-hint">Use the credentials configured through your local environment.</p>
+            <p id="loginError" class="form-error" role="alert" hidden></p>
+        </form>
+    </section>
+
+    <section id="dashboardView" class="app-shell" hidden>
+        <aside class="sidebar" aria-label="Primary navigation">
+            <div class="sidebar-label">Workspace</div>
+            <nav class="side-nav">
+                <button class="nav-item active" data-view="overview" type="button"><span class="nav-icon">&#9632;</span> Overview</button>
+                <button class="nav-item" data-view="jobs" type="button"><span class="nav-icon">&#9776;</span> Job registry <span id="navJobCount" class="nav-count">0</span></button>
+                <button class="nav-item" data-view="activity" type="button"><span class="nav-icon">&#9673;</span> Execution history</button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="stack-label">Runtime stack</div>
+                <div class="stack-status"><span class="live-dot"></span> Scheduler online</div>
+                <div class="stack-meta">H2 local / Flyway managed</div>
+            </div>
+        </aside>
+
+        <div class="app-content">
+            <div class="dashboard-heading">
+                <div><p class="eyebrow">Operations / scheduler</p><h1 id="viewTitle">Control room</h1><p id="viewDescription" class="lede">A clear view of what is scheduled, what ran, and what needs attention.</p></div>
+                <div class="heading-actions"><button id="refreshButton" class="button button-secondary" type="button"><span aria-hidden="true">&#8635;</span> Refresh</button><button id="newJobButton" class="button button-primary" type="button"><span aria-hidden="true">+</span> New job</button></div>
+            </div>
+
+            <div id="toast" class="toast" role="status" hidden></div>
+            <div id="metrics" class="metrics" aria-label="Scheduler summary">
+                <article class="metric"><span>Total jobs</span><strong id="totalJobs">0</strong><small>registered schedules</small></article>
+                <article class="metric metric-green"><span>Active</span><strong id="activeJobs">0</strong><small>ready to run</small></article>
+                <article class="metric metric-amber"><span>Paused</span><strong id="pausedJobs">0</strong><small>manually disabled</small></article>
+                <article class="metric metric-blue"><span>Last event</span><strong id="lastEvent">--</strong><small>latest known execution</small></article>
+            </div>
+
+            <div class="workspace-grid">
+                <section class="panel jobs-panel view-panel" data-panel="overview jobs">
+                    <div class="panel-heading"><div><p class="eyebrow">Schedules</p><h2>Job registry</h2></div></div>
+                    <div id="jobsEmpty" class="empty-state" hidden><strong>No schedules yet</strong><span>Create your first job to start the orchestration demo.</span></div>
+                    <div class="table-wrap"><table><thead><tr><th>Job</th><th>Schedule</th><th>State</th><th>Retries</th><th>Actions</th></tr></thead><tbody id="jobsTable"></tbody></table></div>
+                </section>
+
+                <aside class="panel activity-panel view-panel" data-panel="overview activity">
+                    <div class="panel-heading"><div><p class="eyebrow">Selected job</p><h2 id="selectedJobName">No selection</h2></div></div>
+                    <div id="jobDetail" class="detail-empty">Select a job to inspect its execution trail.</div>
+                    <div id="historyList" class="history-list" hidden></div>
+                </aside>
+            </div>
+        </div>
+    </section>
+</main>
+
+<dialog id="jobDialog" class="job-dialog">
+    <form id="jobForm" method="dialog" class="dialog-form">
+        <div class="panel-heading"><div><p class="eyebrow">Scheduler configuration</p><h2 id="dialogTitle">Create a job</h2></div><button id="closeDialogButton" class="icon-button" type="button" aria-label="Close dialog">&#10005;</button></div>
+        <input id="jobId" type="hidden" />
+        <label>Job name<input id="jobName" required maxlength="255" placeholder="customer-cache-refresh" /></label>
+        <div class="schedule-builder">
+            <div class="builder-label"><span>Schedule</span><small>Enter numbers only. The Spring cron expression is generated for you.</small></div>
+            <label>Frequency<select id="scheduleMode"><option value="minutes">Every N minutes</option><option value="hourly">Every hour at minute</option><option value="daily">Every day at time</option></select></label>
+            <div id="minutesFields" class="schedule-fields"><label>Every <input id="minuteInterval" type="number" min="1" max="59" value="30" /> minutes</label></div>
+            <div id="hourlyFields" class="schedule-fields" hidden><label>At minute <input id="hourMinute" type="number" min="0" max="59" value="0" /> of every hour</label></div>
+            <div id="dailyFields" class="schedule-fields" hidden><label>Hour <input id="dailyHour" type="number" min="0" max="23" value="9" /></label><label>Minute <input id="dailyMinute" type="number" min="0" max="59" value="0" /></label></div>
+            <div class="cron-preview"><span class="pulse-orb"></span><div><small>Generated Spring cron</small><strong id="cronPreview">0 0/30 * * * *</strong><span id="scheduleSummary">Runs every 30 minutes</span></div></div>
+            <input id="cronExpression" type="hidden" value="0 0/30 * * * *" />
+        </div>
+        <label>Target URL <span class="optional">optional</span><input id="targetUrl" type="url" placeholder="https://example.com/hooks/cache" /></label>
+        <label>Maximum retries <span class="optional">additional attempts</span><span class="stepper"><button class="stepper-button" data-step="-1" type="button" aria-label="Decrease retries">&#8722;</button><input id="maxRetries" type="number" min="0" max="10" value="0" /><button class="stepper-button" data-step="1" type="button" aria-label="Increase retries">+</button></span></label>
+        <p id="jobFormError" class="form-error" role="alert" hidden></p>
+        <div id="saveStatus" class="save-status" hidden><span class="save-spinner"></span><span>Saving job and registering schedule...</span></div>
+        <div class="dialog-actions"><button id="cancelDialogButton" class="button button-quiet" type="button">Cancel</button><button id="saveJobButton" class="button button-primary" type="submit"><span class="button-label">Save job</span><span class="button-spinner" hidden></span></button></div>
+    </form>
+</dialog>
+<dialog id="confirmDialog" class="confirm-dialog">
+    <form id="confirmForm" method="dialog" class="confirm-form">
+        <div class="confirm-icon">!</div>
+        <p class="eyebrow">Please confirm</p>
+        <h2 id="confirmTitle">Delete scheduled job?</h2>
+        <p id="confirmMessage" class="confirm-message">This action cannot be undone.</p>
+        <div class="dialog-actions">
+            <button id="confirmCancelButton" class="button button-secondary" value="cancel" type="submit">Cancel</button>
+            <button id="confirmActionButton" class="button button-danger-fill" value="confirm" type="submit">Delete job</button>
+        </div>
+    </form>
+</dialog>
+<script src="/js/app.js?v=7"></script>
+</body>
+</html>

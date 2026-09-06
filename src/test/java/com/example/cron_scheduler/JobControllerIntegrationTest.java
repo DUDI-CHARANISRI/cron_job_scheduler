@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -26,17 +27,18 @@ class JobControllerIntegrationTest {
                 """;
 
         mockMvc.perform(post("/api/jobs")
+                        .with(user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(request))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("integration-test-job"))
                 .andExpect(jsonPath("$.enabled").value(true));
 
-        mockMvc.perform(post("/api/jobs/1/run"))
+        mockMvc.perform(post("/api/jobs/1/run").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("SUCCESS"));
 
-        mockMvc.perform(get("/api/jobs/1/executions"))
+        mockMvc.perform(get("/api/jobs/1/executions").with(user("admin").roles("ADMIN")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].jobName").value("integration-test-job"));
     }
@@ -44,8 +46,27 @@ class JobControllerIntegrationTest {
     @Test
     void rejectsInvalidCronExpression() throws Exception {
         mockMvc.perform(post("/api/jobs")
+                                                .with(user("admin").roles("ADMIN"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"bad-job\",\"cronExpression\":\"invalid\"}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void rejectsDuplicateJobNames() throws Exception {
+        String request = "{\"name\":\"unique-job\",\"cronExpression\":\"0 0 0 1 1 ?\"}";
+        String duplicateRequest = "{\"name\":\"UNIQUE-JOB\",\"cronExpression\":\"0 0 0 1 1 ?\"}";
+
+        mockMvc.perform(post("/api/jobs")
+                        .with(user("admin").roles("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(request))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/api/jobs")
+                        .with(user("admin").roles("ADMIN"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(duplicateRequest))
+                .andExpect(status().isConflict());
     }
 }

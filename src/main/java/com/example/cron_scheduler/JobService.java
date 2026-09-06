@@ -9,13 +9,13 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CONFLICT;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @Service
@@ -37,12 +37,13 @@ public class JobService {
 
     @Transactional(readOnly = true)
     public List<JobResponse> findAll() {
-        return jobRepository.findAll().stream().sorted(Comparator.comparing(ScheduledJob::getId))
+        return jobRepository.findAllByOrderByIdAsc().stream()
                 .map(JobResponse::from).toList();
     }
 
     @Transactional
     public JobResponse create(JobRequest request) {
+        ensureNameAvailable(request.name());
         validateCron(request.cronExpression());
         ScheduledJob job = jobRepository.save(new ScheduledJob(request.name(), request.cronExpression(),
             request.targetUrl(), request.retriesOrDefault()));
@@ -52,8 +53,11 @@ public class JobService {
 
     @Transactional
     public JobResponse update(Long id, JobRequest request) {
-        validateCron(request.cronExpression());
         ScheduledJob job = findJob(id);
+        if (!job.getName().equalsIgnoreCase(request.name()) && jobRepository.existsByNameIgnoreCase(request.name())) {
+            throw new ResponseStatusException(CONFLICT, "A job with this name already exists");
+        }
+        validateCron(request.cronExpression());
         job.update(request.name(), request.cronExpression(), request.targetUrl(), request.retriesOrDefault());
         schedule(jobRepository.save(job));
         return JobResponse.from(job);
@@ -141,6 +145,12 @@ public class JobService {
             new CronTrigger(expression);
         } catch (IllegalArgumentException exception) {
             throw new ResponseStatusException(BAD_REQUEST, "Invalid cron expression", exception);
+        }
+    }
+
+    private void ensureNameAvailable(String name) {
+        if (jobRepository.existsByNameIgnoreCase(name)) {
+            throw new ResponseStatusException(CONFLICT, "A job with this name already exists");
         }
     }
 }

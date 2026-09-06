@@ -138,11 +138,11 @@ Do not commit the local H2 files under `data/`; `data/` is already ignored in `.
 
 ## Known Limitations
 
-- H2 is used locally; PostgreSQL is not added yet.
-- Kafka producer code exists, but Kafka infrastructure and a consumer are not added yet.
+- H2 is used locally; PostgreSQL is available through the Docker profile.
+- Kafka publishing and infrastructure are available, but a separate consumer worker is not added yet.
 - Webhook retry attempts are implemented, but there is no configurable backoff or timeout policy yet.
-- The application currently has no authentication or authorization.
-- There is no frontend dashboard yet.
+- The current security baseline uses demo in-memory users; production OAuth/OIDC is not configured.
+- The operations dashboard is a browser-only REST client; it is not a production identity-management UI.
 - The scheduled execution path uses Spring `TaskScheduler`; Quartz is on the classpath but is not directly used for job registration.
 - Jobs without `targetUrl` record simulated successful executions.
 

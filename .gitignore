@@ -34,3 +34,8 @@ build/
 
 ### Local H2 database ###
 data/
+
+# Local secrets
+.env
+.env.*
+!.env.example
