@@ -39,7 +39,8 @@ credential in session storage. Use a real OAuth/OIDC identity provider for produ
 
 The `ADMIN` role can create, update, enable, disable, and delete jobs. The `OPERATOR`
 role can view jobs, inspect execution history, and run jobs manually, but cannot change
-job definitions or delete them.
+job definitions or delete them. The dashboard calls `/api/auth/me` after login and hides
+the create/pause/delete controls for the `OPERATOR` role to match what the backend allows.
 
 ## Docker / real-world stack
 
@@ -135,6 +136,9 @@ docker build -t cron-job-scheduler .
 
 Then connect the repository to Render or trigger the deploy hook from GitHub Actions.
 See [DEPLOYMENT.md](DEPLOYMENT.md) for the step-by-step setup.
+
+> The free Render tier spins the service down after about 15 minutes of inactivity.
+> The first request after idle time can take 30-60 seconds while it wakes back up.
 
 ## Verify
 

@@ -1,4 +1,5 @@
-const state = { credentials: null, jobs: [], selectedJobId: null, savingJob: false };
+const state = { credentials: null, jobs: [], selectedJobId: null, savingJob: false, role: null };
+const isAdmin = () => state.role === 'ADMIN';
 const $ = (id) => document.getElementById(id);
 
 function setVisible(element, visible) { element.hidden = !visible; }
@@ -50,7 +51,9 @@ function login(event) {
     loginButton.disabled = true;
     loginButton.textContent = 'Connecting...';
     state.credentials = btoa(`${username}:${password}`);
-    api('/api/jobs').then(() => {
+    api('/api/jobs').then(async () => {
+        const identity = await api('/api/auth/me');
+        state.role = identity.role;
         showDashboard();
     }).catch((error) => {
         state.credentials = null;
@@ -65,6 +68,7 @@ function login(event) {
 
 function logout() {
     state.credentials = null;
+    state.role = null;
     state.jobs = [];
     state.selectedJobId = null;
     $('jobsTable').innerHTML = '';
@@ -83,6 +87,7 @@ function showDashboard() {
     setVisible($('loginView'), false);
     setVisible($('dashboardView'), true);
     setVisible($('logoutButton'), true);
+    setVisible($('newJobButton'), isAdmin());
     setConnection(true);
     setDashboardView('overview');
     loadJobs();
@@ -139,8 +144,8 @@ function renderJobs() {
             <td><code>${escapeHtml(job.cronExpression)}</code></td><td><span class="state ${job.enabled ? 'active' : ''}">${job.enabled ? 'Active' : 'Paused'}</span></td>
             <td>${job.maxRetries}</td><td><div class="actions"><button class="button button-small button-secondary" data-action="select" data-id="${job.id}" type="button">History</button>
             <button class="button button-small button-secondary" data-action="run" data-id="${job.id}" type="button">Run</button>
-            <button class="button button-small button-quiet" data-action="toggle" data-id="${job.id}" type="button">${job.enabled ? 'Pause' : 'Enable'}</button>
-            <button class="button button-small button-quiet button-danger" data-action="delete" data-id="${job.id}" type="button">Delete</button></div></td>`;
+            ${isAdmin() ? `<button class="button button-small button-quiet" data-action="toggle" data-id="${job.id}" type="button">${job.enabled ? 'Pause' : 'Enable'}</button>
+            <button class="button button-small button-quiet button-danger" data-action="delete" data-id="${job.id}" type="button">Delete</button>` : ''}</div></td>`;
         table.appendChild(row);
     });
 }
