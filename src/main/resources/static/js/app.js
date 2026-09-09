@@ -105,9 +105,23 @@ async function loadJobs() {
     try {
         state.jobs = await api('/api/jobs');
         renderJobs();
+        await loadSummary();
         if (state.selectedJobId && state.jobs.some((job) => job.id === state.selectedJobId)) await selectJob(state.selectedJobId);
         setConnection(true);
     } catch (error) { showToast(error.message, true); }
+}
+
+async function loadSummary() {
+    try {
+        const summary = await api('/api/jobs/summary');
+        $('totalJobs').textContent = summary.totalJobs;
+        $('activeJobs').textContent = summary.activeJobs;
+        $('pausedJobs').textContent = summary.pausedJobs;
+        $('navJobCount').textContent = summary.totalJobs;
+        $('lastEvent').textContent = summary.lastExecutionAt ? formatDate(summary.lastExecutionAt) : '--';
+    } catch (error) {
+        console.warn('Summary unavailable:', error.message);
+    }
 }
 
 function renderJobs() {

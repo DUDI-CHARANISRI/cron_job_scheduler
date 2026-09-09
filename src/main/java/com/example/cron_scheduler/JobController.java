@@ -1,3 +1,7 @@
+/**
+ * REST controller exposing job management and operational summary APIs.
+ * The application uses this controller for UI interactions and external integrations.
+ */
 package com.example.cron_scheduler;
 
 import jakarta.validation.Valid;
@@ -19,10 +23,19 @@ import java.util.List;
 public class JobController {
     private final JobService jobService;
 
-    public JobController(JobService jobService) { this.jobService = jobService; }
+    public JobController(JobService jobService) {
+        this.jobService = jobService;
+    }
 
     @GetMapping
-    public List<JobResponse> findAll() { return jobService.findAll(); }
+    public List<JobResponse> findAll() {
+        return jobService.findAll();
+    }
+
+    @GetMapping("/summary")
+    public JobMetricsResponse summary() {
+        return jobService.summary();
+    }
 
     @PostMapping
     public ResponseEntity<JobResponse> create(@Valid @RequestBody JobRequest request) {
@@ -35,16 +48,24 @@ public class JobController {
     }
 
     @PatchMapping("/{id}/enable")
-    public JobResponse enable(@PathVariable Long id) { return jobService.setEnabled(id, true); }
+    public JobResponse enable(@PathVariable Long id) {
+        return jobService.setEnabled(id, true);
+    }
 
     @PatchMapping("/{id}/disable")
-    public JobResponse disable(@PathVariable Long id) { return jobService.setEnabled(id, false); }
+    public JobResponse disable(@PathVariable Long id) {
+        return jobService.setEnabled(id, false);
+    }
 
     @PostMapping("/{id}/run")
-    public JobExecutionResponse runNow(@PathVariable Long id) { return jobService.runNow(id); }
+    public JobExecutionResponse runNow(@PathVariable Long id) {
+        return jobService.runNow(id);
+    }
 
     @GetMapping("/{id}/executions")
-    public List<JobExecutionResponse> history(@PathVariable Long id) { return jobService.history(id); }
+    public List<JobExecutionResponse> history(@PathVariable Long id) {
+        return jobService.history(id);
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

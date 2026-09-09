@@ -1,3 +1,6 @@
+/**
+ * Request payload used when creating or updating a scheduled task.
+ */
 package com.example.cron_scheduler;
 
 import jakarta.validation.constraints.Max;
@@ -10,5 +13,12 @@ public record JobRequest(
         String targetUrl,
         @Min(0) @Max(10) Integer maxRetries
 ) {
-    public int retriesOrDefault() { return maxRetries == null ? 0 : maxRetries; }
+    /**
+     * Returns the configured retry count or zero when no explicit value was supplied.
+     *
+     * @return normalized retry count
+     */
+    public int retriesOrDefault() {
+        return maxRetries == null ? 0 : maxRetries;
+    }
 }

@@ -1,3 +1,7 @@
+/**
+ * Central exception mapper for API surface errors.
+ * It keeps error payloads predictable and preserves the request correlation ID.
+ */
 package com.example.cron_scheduler;
 
 import org.slf4j.Logger;

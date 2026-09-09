@@ -1,7 +1,10 @@
 package com.example.cron_scheduler;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -11,8 +14,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.util.StringUtils;
 
@@ -39,6 +40,9 @@ public class SecurityConfig {
     @Value("${app.security.operator.password-hash}")
     private String operatorPasswordHash;
 
+    @Value("${app.oauth.enabled:false}")
+    private boolean oauthEnabled;
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,13 +51,20 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/", "/index.html", "/css/**", "/js/**", "/webjars/**",
-                    "/actuator/health", "/h2-console/**").permitAll()
+                    "/actuator/health", "/h2-console/**",
+                    "/oauth2/**", "/login/oauth2/code/**").permitAll()
                 .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/**")
                     .hasAnyRole("ADMIN", "OPERATOR")
                 .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/jobs/*/run")
                     .hasAnyRole("ADMIN", "OPERATOR")
                 .requestMatchers("/api/**", "/graphql/**").hasRole("ADMIN")
-                .anyRequest().authenticated())
+                .anyRequest().authenticated());
+
+        if (oauthEnabled) {
+            http.oauth2Login(Customizer.withDefaults());
+        }
+
+        http
             // httpBasic() keeps its own private entry point for bad-credential failures,
             // separate from exceptionHandling()'s fallback for missing credentials, so both
             // must point at this same entry point or the browser's native popup returns.

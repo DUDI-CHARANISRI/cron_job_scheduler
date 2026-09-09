@@ -1,3 +1,6 @@
+/**
+ * JPA entity representing a single scheduled job definition.
+ */
 package com.example.cron_scheduler;
 
 import jakarta.persistence.Entity;
@@ -6,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "scheduled_jobs")
@@ -24,8 +28,8 @@ public class ScheduledJob {
     protected ScheduledJob() {}
 
     public ScheduledJob(String name, String cronExpression, String targetUrl, int maxRetries) {
-        this.name = name;
-        this.cronExpression = cronExpression;
+        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.cronExpression = Objects.requireNonNull(cronExpression, "cronExpression must not be null");
         this.targetUrl = targetUrl;
         this.maxRetries = maxRetries;
         this.enabled = true;
@@ -34,8 +38,8 @@ public class ScheduledJob {
     }
 
     public void update(String name, String cronExpression, String targetUrl, int maxRetries) {
-        this.name = name;
-        this.cronExpression = cronExpression;
+        this.name = Objects.requireNonNull(name, "name must not be null");
+        this.cronExpression = Objects.requireNonNull(cronExpression, "cronExpression must not be null");
         this.targetUrl = targetUrl;
         this.maxRetries = maxRetries;
         this.updatedAt = LocalDateTime.now();
