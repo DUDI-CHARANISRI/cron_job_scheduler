@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: cron-job-scheduler
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: SERVER_PORT
+        value: 8080
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD_HASH
+        sync: false
+      - key: OPERATOR_USERNAME
+        sync: false
+      - key: OPERATOR_PASSWORD_HASH
+        sync: false
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:h2:file:./data/cron_scheduler
+      - key: SPRING_DATASOURCE_USERNAME
+        value: sa
+      - key: SPRING_DATASOURCE_PASSWORD
+        value: ""

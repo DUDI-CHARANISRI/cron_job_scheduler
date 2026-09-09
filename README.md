@@ -120,6 +120,22 @@ The event publisher is also the boundary for a future microservices deployment. 
 [MICROSERVICES_ARCHITECTURE.md](MICROSERVICES_ARCHITECTURE.md) for the planned scheduler,
 execution-worker, and audit/notification service split.
 
+## Deployment
+
+This project is ready for a lightweight public deployment path using Docker and Render.
+
+### Quick deploy flow
+
+```bash
+# build locally
+./mvnw test
+./mvnw package -DskipTests
+docker build -t cron-job-scheduler .
+```
+
+Then connect the repository to Render or trigger the deploy hook from GitHub Actions.
+See [DEPLOYMENT.md](DEPLOYMENT.md) for the step-by-step setup.
+
 ## Verify
 
 ```bash
