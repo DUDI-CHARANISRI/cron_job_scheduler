@@ -45,6 +45,12 @@ label { display: grid; gap: 8px; margin: 18px 0; color: var(--muted); font-size:
 	.login-view { min-height: 0; padding: 30px 0 24px; }
 	.login-copy h1 { font-size: clamp(34px, 12vw, 43px); }
 	.lede { font-size: 14px; }
+
+	/* Improve mobile sign-in layout: center the panel and constrain widths */
+	.login-panel { max-width: 460px; margin: 0 auto; width: calc(100% - 32px); padding: 20px; }
+	.login-copy { padding: 0 18px; text-align: center; }
+	.login-copy .eyebrow { display: block; margin-bottom: 8px; }
+	.login-form-controls { width: 100%; }
 	.signal-list { margin-top: 24px; }
 	.panel-heading { gap: 10px; }
 	.panel-heading h2 { font-size: 19px; }

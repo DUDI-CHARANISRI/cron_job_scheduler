@@ -30,9 +30,8 @@ export OPERATOR_PASSWORD_HASH='your-bcrypt-hash'
 ./mvnw spring-boot:run
 ```
 
-The variable names are also listed in `.env.example`; never commit a populated `.env`
-file. If Codespaces Secrets were added after this Codespace was created, rebuild or
-recreate the Codespace so they are injected into the environment.
+The variable names are also listed in `.env.example`; never commit a populated `.env` file.
+If repository or environment secrets are added after the development environment is started, rebuild or recreate it so the secrets are injected at runtime.
 
 The dashboard uses the secured REST API and stores only the active browser session
 credential in session storage. Use a real OAuth/OIDC identity provider for production.
@@ -104,7 +103,7 @@ curl http://localhost:8080/graphql \
 
 Execution events can be published to Kafka topic `job-execution-events` by setting
 `app.kafka.enabled=true` and running Kafka on `localhost:9092`. Kafka is disabled by
-default so the application remains easy to run in a Codespace without infrastructure.
+default so the application remains easy to run locally without extra infrastructure.
 
 ## Design notes
 
@@ -152,3 +151,22 @@ with:
 ```bash
 ./mvnw checkstyle:check
 ```
+
+## Running the persistence restart integration test (optional)
+
+The repository contains an optional integration test that simulates creating a job,
+restarting the application context, and asserting the job is rehydrated into the
+in-memory scheduler. The test is disabled by default to avoid failing CI builds.
+
+To run it locally:
+
+1. Enable the test by removing or commenting out the `@Disabled` annotation in
+	`src/test/java/com/example/cron_scheduler/SchedulerPersistenceTest.java`.
+2. Run only that test locally:
+
+```bash
+mvn -Dtest=SchedulerPersistenceTest test
+```
+
+The test uses a file-backed H2 database at `target/scheduler_test_db` so the
+persisted job survives the two application contexts it starts.

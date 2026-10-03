@@ -16,9 +16,13 @@ public class CronSchedulerApplication {
 
 	@Bean
 	CommandLineRunner schedulePersistedJobs(ScheduledJobRepository repository, JobService jobService) {
-		return args -> repository.findAll().stream()
+		return args -> {
+			java.util.List<ScheduledJob> enabled = repository.findAll().stream()
 				.filter(ScheduledJob::isEnabled)
-				.forEach(job -> jobService.reschedule(job));
+				.toList();
+			enabled.forEach(job -> jobService.reschedule(job));
+			jobService.recordRehydratedIds(enabled.stream().map(ScheduledJob::getId).toList());
+		};
 	}
 
 }

@@ -105,7 +105,7 @@ ID, event type, schema version, occurred-at timestamp, correlation ID, and produ
 
 A distributed system introduces network failures, duplicate messages, schema evolution,
 independent deployments, tracing, and operational overhead. A modular monolith provides
-those boundaries without making the Codespaces demo difficult to run. The project can
+those boundaries without making the local demo difficult to run. The project can
 therefore demonstrate both sound service decomposition and pragmatic delivery.
 
 ## Production concerns to demonstrate

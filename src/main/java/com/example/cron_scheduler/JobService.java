@@ -37,6 +37,8 @@ public class JobService {
     private final JobEventPublisher eventPublisher;
     private final RestClient restClient = RestClient.create();
     private final Map<Long, ScheduledFuture<?>> scheduledTasks = new ConcurrentHashMap<>();
+    private volatile java.util.List<Long> lastRehydratedIds = java.util.List.of();
+    private volatile java.time.LocalDateTime lastRehydratedAt = null;
 
     public JobService(ScheduledJobRepository jobRepository, JobAuditRepository auditRepository,
                       TaskScheduler taskScheduler, JobEventPublisher eventPublisher) {
@@ -208,6 +210,26 @@ public class JobService {
         validateCron(safeJob.getCronExpression());
         schedule(safeJob);
     }
+
+    /**
+     * Record a batch of rehydrated job ids (called at startup when persisted jobs are
+     * re-registered with the scheduler).
+     */
+    public void recordRehydratedIds(java.util.List<Long> ids) {
+        this.lastRehydratedIds = ids == null ? java.util.List.of() : java.util.List.copyOf(ids);
+        this.lastRehydratedAt = java.time.LocalDateTime.now();
+    }
+
+    /**
+     * Returns the ids currently registered with the in-memory scheduler.
+     */
+    public java.util.List<Long> getScheduledJobIds() {
+        return java.util.List.copyOf(scheduledTasks.keySet());
+    }
+
+    public java.util.List<Long> getLastRehydratedIds() { return lastRehydratedIds; }
+
+    public java.time.LocalDateTime getLastRehydratedAt() { return lastRehydratedAt; }
 
     private void schedule(ScheduledJob job) {
         ScheduledJob safeJob = Objects.requireNonNull(job, "job must not be null");
