@@ -26,3 +26,9 @@ jobs:
 
       - name: Package application
         run: ./mvnw package -DskipTests
+
+      - name: Package action-runner
+        run: mvn -f action-runner package -DskipTests
+
+      - name: Package receiver
+        run: mvn -f receiver package -DskipTests

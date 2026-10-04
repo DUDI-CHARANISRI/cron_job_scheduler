@@ -97,7 +97,8 @@
         <label>Job name<input id="jobName" required maxlength="255" placeholder="customer-cache-refresh" /></label>
         <div class="schedule-builder">
             <div class="builder-label"><span>Schedule</span><small>Enter numbers only. The Spring cron expression is generated for you.</small></div>
-            <label>Frequency<select id="scheduleMode"><option value="minutes">Every N minutes</option><option value="hourly">Every hour at minute</option><option value="daily">Every day at time</option></select></label>
+            <label>Frequency<select id="scheduleMode"><option value="seconds">Every N seconds</option><option value="minutes">Every N minutes</option><option value="hourly">Every hour at minute</option><option value="daily">Every day at time</option></select></label>
+            <div id="secondsFields" class="schedule-fields"><label>Every <input id="secondInterval" type="number" min="1" max="59" value="15" /> seconds</label></div>
             <div id="minutesFields" class="schedule-fields"><label>Every <input id="minuteInterval" type="number" min="1" max="59" value="30" /> minutes</label></div>
             <div id="hourlyFields" class="schedule-fields" hidden><label>At minute <input id="hourMinute" type="number" min="0" max="59" value="0" /> of every hour</label></div>
             <div id="dailyFields" class="schedule-fields" hidden><label>Hour <input id="dailyHour" type="number" min="0" max="23" value="9" /></label><label>Minute <input id="dailyMinute" type="number" min="0" max="59" value="0" /></label></div>

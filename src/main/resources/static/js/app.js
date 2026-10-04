@@ -217,10 +217,15 @@ function updateSchedulePreview() {
     const mode = $('scheduleMode').value;
     let expression;
     let summary;
+    setVisible($('secondsFields'), mode === 'seconds');
     setVisible($('minutesFields'), mode === 'minutes');
     setVisible($('hourlyFields'), mode === 'hourly');
     setVisible($('dailyFields'), mode === 'daily');
-    if (mode === 'minutes') {
+    if (mode === 'seconds') {
+        const interval = Math.max(1, Math.min(59, Number($('secondInterval').value) || 1));
+        expression = `0/${interval} * * * * *`;
+        summary = `Runs every ${interval} second${interval === 1 ? '' : 's'}`;
+    } else if (mode === 'minutes') {
         const interval = Math.max(1, Math.min(59, Number($('minuteInterval').value) || 1));
         expression = `0 0/${interval} * * * *`;
         summary = `Runs every ${interval} minute${interval === 1 ? '' : 's'}`;
@@ -289,7 +294,7 @@ $('jobForm').addEventListener('submit', saveJob);
 $('closeDialogButton').addEventListener('click', () => $('jobDialog').close());
 $('cancelDialogButton').addEventListener('click', () => $('jobDialog').close());
 document.querySelectorAll('.nav-item').forEach((item) => item.addEventListener('click', () => setDashboardView(item.dataset.view)));
-['scheduleMode', 'minuteInterval', 'hourMinute', 'dailyHour', 'dailyMinute'].forEach((id) => $(id).addEventListener('input', updateSchedulePreview));
+['scheduleMode', 'secondInterval', 'minuteInterval', 'hourMinute', 'dailyHour', 'dailyMinute'].forEach((id) => $(id).addEventListener('input', updateSchedulePreview));
 document.querySelectorAll('.stepper-button').forEach((button) => button.addEventListener('click', () => {
     const retries = $('maxRetries');
     retries.value = Math.max(Number(retries.min), Math.min(Number(retries.max), Number(retries.value || 0) + Number(button.dataset.step)));

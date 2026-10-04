@@ -143,6 +143,45 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the step-by-step setup.
 
 ```bash
 ./mvnw test
+
+## Action-runner microservice
+
+This repository now contains a small companion microservice `action-runner` that centralizes outbound actions (HTTP forwarding and email sending). Recruiters and reviewers will appreciate the clear microservice boundary demonstrating separation of concerns.
+
+Run locally:
+
+1. (Optional) Start MailHog to capture emails locally:
+
+```bash
+docker run -d --name mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
+```
+
+2. Start `action-runner` (defaults to port 8082):
+
+```bash
+mvn -f action-runner spring-boot:run -Dspring-boot.run.arguments="--server.port=8082 --spring.mail.host=localhost --spring.mail.port=1025"
+```
+
+3. Start the scheduler and point it at `action-runner`:
+
+```bash
+./mvnw spring-boot:run -Dspring-boot.run.arguments="--action.runner.url=http://localhost:8082/execute"
+```
+
+4. Trigger a job (replace id with your job id):
+
+```bash
+curl -u admin:admin12345 -X POST http://localhost:8080/api/jobs/66/run
+```
+
+View any captured emails in MailHog at `http://localhost:8025` and HTTP forwards in the `receiver` service (`/hooks/received`).
+
+### Deploying the action-runner
+
+- The repository includes `render.yaml` with an `action-runner` service entry. Pushing the branch with this file will allow Render to create both services from the same repo.
+- `action-runner` also includes `action-runner/Dockerfile` (multi-stage) so Render or Docker builds can produce a small runtime image.
+
+Ensure the scheduler is configured with the `action.runner.url` environment variable on the host (Render environment variable or startup argument) to route job executions to the `action-runner` service.
 ```
 
 Maven also runs Checkstyle during the `validate` phase. Run the style gate alone
