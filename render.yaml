@@ -21,19 +21,4 @@ services:
         value: sa
       - key: SPRING_DATASOURCE_PASSWORD
         value: ""
-  - type: web
-    name: action-runner
-    runtime: docker
-    dockerfilePath: ./action-runner/Dockerfile
-    plan: free
-    envVars:
-      - key: SERVER_PORT
-        value: 8082
-      - key: SPRING_MAIL_HOST
-        sync: false
-      - key: SPRING_MAIL_PORT
-        sync: false
-      - key: SPRING_MAIL_USERNAME
-        sync: false
-      - key: SPRING_MAIL_PASSWORD
-        sync: false
+# action-runner has been extracted to a separate repository: https://github.com/DUDI-CHARANISRI/cron-action-runner
