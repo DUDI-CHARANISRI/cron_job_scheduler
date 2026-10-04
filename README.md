@@ -143,6 +143,19 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for the step-by-step setup.
 
 ```bash
 ./mvnw test
+
+Note: `action-runner` has been extracted to its own project to keep this repository focused.
+
+You can find the extracted code on the development host at `/home/codespace/cron-action-runner` — create a new repository from that folder and push it to GitHub, or move it into your preferred remote.
+
+Quick instructions to publish the extracted service (run from the host):
+
+```bash
+# in /home/codespace/cron-action-runner (this folder already contains a local git repo)
+gh repo create <your-org-or-username>/cron-action-runner --public --source=. --remote=origin --push
+```
+
+After you publish the `cron-action-runner` repo, configure the scheduler service's `action.runner.url` environment variable in your deployment to point at the `cron-action-runner` `/execute` endpoint.
 ```
 
 Maven also runs Checkstyle during the `validate` phase. Run the style gate alone

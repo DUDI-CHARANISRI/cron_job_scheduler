@@ -5,6 +5,7 @@
 package com.example.cron_scheduler;
 
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,12 +41,21 @@ public class JobService {
     private volatile java.util.List<Long> lastRehydratedIds = java.util.List.of();
     private volatile java.time.LocalDateTime lastRehydratedAt = null;
 
+    private final String actionRunnerUrl;
+
     public JobService(ScheduledJobRepository jobRepository, JobAuditRepository auditRepository,
-                      TaskScheduler taskScheduler, JobEventPublisher eventPublisher) {
+                      TaskScheduler taskScheduler, JobEventPublisher eventPublisher,
+                      @Value("${action.runner.url:}") String actionRunnerUrl) {
         this.jobRepository = Objects.requireNonNull(jobRepository, "jobRepository must not be null");
         this.auditRepository = Objects.requireNonNull(auditRepository, "auditRepository must not be null");
         this.taskScheduler = Objects.requireNonNull(taskScheduler, "taskScheduler must not be null");
         this.eventPublisher = Objects.requireNonNull(eventPublisher, "eventPublisher must not be null");
+        this.actionRunnerUrl = actionRunnerUrl == null ? "" : actionRunnerUrl.trim();
+        if (!StringUtils.hasText(this.actionRunnerUrl)) {
+            String msg = "Missing required configuration property: action.runner.url "
+                    + "(point to action-runner /execute)";
+            throw new IllegalStateException(msg);
+        }
     }
 
     /**
@@ -254,9 +264,15 @@ public class JobService {
             try {
                 String targetUrl = normalizeTargetUrl(safeJob.getTargetUrl());
                 if (StringUtils.hasText(targetUrl)) {
-                    restClient.post()
-                            .uri(targetUrl)
-                            .body(Map.of("jobId", safeJob.getId(), "jobName", safeJob.getName()))
+                        // Forward to action-runner service which will execute the HTTP post/email
+                        Map<String, Object> actionRequest = Map.of(
+                            "actionType", "http",
+                            "targetUrl", targetUrl,
+                            "payload", Map.of("jobId", safeJob.getId(), "jobName", safeJob.getName())
+                        );
+                        restClient.post()
+                            .uri(actionRunnerUrl)
+                            .body(actionRequest)
                             .retrieve()
                             .toBodilessEntity();
                 }

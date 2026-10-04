@@ -3,6 +3,7 @@ package com.example.receiver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -24,9 +25,9 @@ public class ReceiverController {
 
     private final List<Map<String, Object>> received = new CopyOnWriteArrayList<>();
 
-    public ReceiverController(JavaMailSender mailSender,
+    public ReceiverController(ObjectProvider<JavaMailSender> mailSenderProvider,
                               @Value("${receiver.email.to:}") String emailTo) {
-        this.mailSender = mailSender;
+        this.mailSender = mailSenderProvider.getIfAvailable();
         this.emailTo = emailTo == null ? "" : emailTo.trim();
     }
 
@@ -40,7 +41,7 @@ public class ReceiverController {
         log.info("Received webhook payload: {}", payload);
 
         // If an email recipient is configured, send a simple notification email.
-        if (emailTo.length() > 0) {
+        if (emailTo.length() > 0 && mailSender != null) {
             try {
                 SimpleMailMessage msg = new SimpleMailMessage();
                 msg.setTo(emailTo);
@@ -51,6 +52,8 @@ public class ReceiverController {
             } catch (Exception ex) {
                 log.error("Failed to send notification email", ex);
             }
+        } else if (emailTo.length() > 0) {
+            log.warn("Email recipient configured but no JavaMailSender available; skipping email");
         }
 
         return ResponseEntity.ok("received");

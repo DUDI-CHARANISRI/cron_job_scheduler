@@ -21,3 +21,4 @@ services:
         value: sa
       - key: SPRING_DATASOURCE_PASSWORD
         value: ""
+# action-runner has been extracted to a separate repository: https://github.com/DUDI-CHARANISRI/cron-action-runner
